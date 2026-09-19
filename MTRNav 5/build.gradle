@@ -1,0 +1,87 @@
+plugins {
+	id "fabric-loom" version "1.6-SNAPSHOT"
+	id "maven-publish"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+	// Only needed if you switch to the Modrinth-maven dependencies below
+	// instead of the vendored jars in ./libs/.
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "Modrinth"
+				url = "https://api.modrinth.com/maven"
+			}
+		}
+		filter {
+			includeGroup "maven.modrinth"
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	// --- Minecraft Transit Railway 4.0.5 (Fabric, 1.18.2) -- required ---
+	// Uses the vendored jar in ./libs/ if it's there (the local/manual build
+	// path); otherwise falls back to Modrinth's maven automatically. This is
+	// what lets the SAME build.gradle work both locally and on a CI runner
+	// (see .github/workflows/build.yml) without editing anything -- the CI
+	// repo skips committing the 80+ MB jar and just lets this branch run.
+	// Modrinth project ID "XKPAmI6u" is confirmed real (Minecraft Transit
+	// Railway) via a live search; the specific version hash below
+	// ("C9xMNlKz", from your earlier message) could not be independently
+	// re-confirmed as exactly FABRIC-4.0.5+1.18.2 in this pass. If the CI
+	// build in .github/workflows/build.yml fails to resolve this, open
+	// https://modrinth.com/mod/minecraft-transit-railway/versions and copy
+	// the Maven coordinate shown for the FABRIC-4.0.5+1.18.2 entry.
+	if (file("libs/MTR-fabric-4_0_5_1_18_2.jar").exists()) {
+		modImplementation files("libs/MTR-fabric-4_0_5_1_18_2.jar")
+	} else {
+		modImplementation "maven.modrinth:XKPAmI6u:C9xMNlKz"
+	}
+
+	// --- Dynmap 3.7-beta-4 (Fabric, 1.18.2) -- optional, soft dependency ---
+	// Only needed at compile time because DynmapIntegration.java references
+	// its Marker API classes; MTRNav still runs fine at runtime on a server
+	// that doesn't have Dynmap installed (see DynmapIntegration's class doc).
+	// At ~11 MB this one's small enough to just commit/upload normally.
+	modImplementation files("libs/Dynmap-3_7-beta-4-fabric-1_18_2.jar")
+}
+
+loom {
+	// MTRNav never touches Minecraft internals directly enough to need mixins or
+	// an access widener -- everything it needs is public API (vanilla Fabric +
+	// MTR's public org.mtr.core.data classes), so this stays minimal on purpose.
+	runConfigs.configureEach {
+		ideConfigGenerated = true
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+	it.options.release = 17
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+	withSourcesJar()
+}
+
+processResources {
+	inputs.property "version", project.version
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}

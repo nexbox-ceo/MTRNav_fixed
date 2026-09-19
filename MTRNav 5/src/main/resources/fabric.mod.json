@@ -1,0 +1,26 @@
+{
+	"schemaVersion": 1,
+	"id": "mtrnav",
+	"version": "${version}",
+	"name": "MTRNav",
+	"description": "In-game smartphone overlay for journey planning, live arrivals and turn-by-turn transit navigation on top of Minecraft Transit Railway. Optionally puts MTR stations on Dynmap if it's installed.",
+	"authors": ["Chidie"],
+	"license": "MIT",
+	"entrypoints": {
+		"main": [
+			"com.mtrnav.MTRNavMod"
+		],
+		"client": [
+			"com.mtrnav.MTRNavClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.14.0",
+		"fabric": "*",
+		"minecraft": "1.18.2",
+		"mtr": ">=4.0.5"
+	},
+	"recommends": {
+		"dynmap": "*"
+	}
+}
