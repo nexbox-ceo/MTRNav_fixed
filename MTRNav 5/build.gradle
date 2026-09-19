@@ -32,6 +32,9 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
+	// Nullable is used only for compile-time annotations.
+	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+
 	// --- Minecraft Transit Railway 4.0.5 (Fabric, 1.18.2) -- required ---
 	// Uses the vendored jar in ./libs/ if it's there (the local/manual build
 	// path); otherwise falls back to Modrinth's maven automatically. This is
